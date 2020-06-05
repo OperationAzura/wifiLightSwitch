@@ -1,0 +1,63 @@
+<html>
+<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+<meta content="utf-8" http-equiv="encoding">
+<head>
+    <title>Derek's Fan Server</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="data:,">
+    <style>
+        html{font-family: Helvetica; display:inline-block; margin: 0px auto; text-align: center;}
+          h1{color: #0F3376; padding: 2vh;}p{font-size: 1.5rem;}.button{display: inline-block; background-color: #e7bd3b; border: none; 
+          border-radius: 4px; color: white; padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}
+          .button2{background-color: #4286f4;}
+    </style>
+</head>
+<body>
+    <h1>Derek's Fan Server</h1>
+    <p>state: <strong i><div id="state">State?</div></strong></p>
+    <p><button id="line1OnButton" data="line1On" class="button">LINE1 ON</button></p>
+    <p><button id="line1OffButton" data="line1Off" class="button button2">LINE 1 OFF</button></p>
+    <p><button id="line2OnButton" data="line2On" class="button">LINE2 ON</button></p>
+    <p><button id="line2OffButton" data="line2Off" class="button button2">LINE 2 OFF</button></p>
+</body>
+<script type="text/javascript">
+    document.getElementById("line1OnButton").addEventListener("click", line1OnButton);
+    document.getElementById("line1OffButton").addEventListener("click", line1OffButton);
+    document.getElementById("line2OnButton").addEventListener("click", line2OnButton);
+    document.getElementById("line2OffButton").addEventListener("click", line2OffButton);
+                   
+function flipSwitch(lightSwitch) {
+    var xmlhttp = new XMLHttpRequest();
+
+    xmlhttp.onreadystatechange = function() {
+        if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
+           if (xmlhttp.status == 200) {
+               document.getElementById("state").innerHTML = xmlhttp.responseText;
+           }
+           else if (xmlhttp.status == 400) {
+              alert('There was an error 400');
+           }
+           else {
+               alert('something else other than 200 was returned');
+           }
+        }
+    };
+    xmlhttp.open("GET", "http://derekspace.ddns.net:8888/?line"+lightSwitch+"", true);
+    xmlhttp.setRequestHeader('Access-Control-Allow-Headers', 'http://derekspace.ddns.net');
+    xmlhttp.send();
+}
+
+function line1OnButton(){
+    flipSwitch("1=on");    
+}
+function line1OffButton(){
+    flipSwitch("1=off");
+}
+function line2OnButton(){
+    flipSwitch("2=on");    
+}
+function line2OffButton(){
+    flipSwitch("2=off");
+}
+</script>                 
+</html>

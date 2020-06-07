@@ -19,12 +19,16 @@
     <p><button id="line1OffButton" data="line1Off" class="button button2">LINE 1 OFF</button></p>
     <p><button id="line2OnButton" data="line2On" class="button">LINE2 ON</button></p>
     <p><button id="line2OffButton" data="line2Off" class="button button2">LINE 2 OFF</button></p>
+    <p><button id="resetSwitch" data="resetSwitch" class="button button2">ResetSwitch</button></p>
+    <p><button id="loadLog" data="loadLog" class="button button2">LoadLog</button></p>
 </body>
 <script type="text/javascript">
     document.getElementById("line1OnButton").addEventListener("click", line1OnButton);
     document.getElementById("line1OffButton").addEventListener("click", line1OffButton);
     document.getElementById("line2OnButton").addEventListener("click", line2OnButton);
     document.getElementById("line2OffButton").addEventListener("click", line2OffButton);
+    document.getElementById("resetSwitch").addEventListener("click", resetSwitch);
+    document.getElementById("loadLog").addEventListener("click", loadLog);
                    
 function flipSwitch(lightSwitch) {
     var xmlhttp = new XMLHttpRequest();
@@ -42,22 +46,30 @@ function flipSwitch(lightSwitch) {
            }
         }
     };
-    xmlhttp.open("GET", "http://derekspace.ddns.net:8888/?line"+lightSwitch+"", true);
+    xmlhttp.open("GET", "http://192.168.1.30/"+lightSwitch+"", true);
     xmlhttp.setRequestHeader('Access-Control-Allow-Headers', 'http://derekspace.ddns.net');
     xmlhttp.send();
 }
 
+function loadLog(){
+    flipSwitch('log');
+}
+
+function resetSwitch(){
+    flipSwitch('resetSwitch');
+}
+
 function line1OnButton(){
-    flipSwitch("1=on");    
+    flipSwitch("?line1=on");    
 }
 function line1OffButton(){
-    flipSwitch("1=off");
+    flipSwitch("?line1=off");
 }
 function line2OnButton(){
-    flipSwitch("2=on");    
+    flipSwitch("?line2=on");    
 }
 function line2OffButton(){
-    flipSwitch("2=off");
+    flipSwitch("?line2=off");
 }
 </script>                 
 </html>

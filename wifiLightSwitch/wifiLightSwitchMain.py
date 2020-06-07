@@ -4,20 +4,28 @@ import socket
 import _thread
 import time
 import utime
+import machine
 
+def resetSwitch():
+    machine.reset()
+
+def startResetTimer():
+    timer = machine.Timer(0)  
+    timer.init(period=60000, mode=machine.Timer.PERIODIC, callback=resetSwitch)
+ 
 class Switch:    
     def pysicalSwitchToggle(self, pin):
-        if abs(time.ticks_ms() - self.pysicalSwitchTimer) > 500:
-            self.toggle()
-            self.pysicalSwitchTimer = utime.ticks_ms()
+        #if abs(time.ticks_ms() - self.pysicalSwitchTimer) > 500:
+        self.toggle()
+            #self.pysicalSwitchTimer = utime.ticks_ms()
         
     def __init__(self, name, relayPinNumber, switchPinNumber):
         self.name = name
         self.relayPin = Pin(relayPinNumber, Pin.OUT)
         self.switchPin = Pin(switchPinNumber, Pin.IN)
-        self.pysicalSwitchState = self.switchPin.value()
-        self.switchPin.irq(trigger=Pin.IRQ_HIGH_LEVEL | Pin.IRQ_LOW_LEVEL, handler=self.pysicalSwitchToggle)
-        self.pysicalSwitchTimer = utime.ticks_ms()
+        #self.pysicalSwitchState = self.switchPin.value()
+        self.switchPin.irq(trigger=Pin.IRQ_RISING, handler=self.pysicalSwitchToggle)
+        s#elf.pysicalSwitchTimer = utime.ticks_ms()
         
         print('Switch created!')
         print('Name: ', name)
@@ -84,6 +92,8 @@ def run():
             
             line1On = request.find('/?line1=on')
             line1Off = request.find('/?line1=off')
+            servLog = request.find('/log')
+            reset = request.find('/resetSwitch')
             #line2On = request.find('/?line2=on')
             #line2Off = request.find('/?line2=off')
             if line1On == 6:
@@ -92,7 +102,11 @@ def run():
             elif line1Off == 6:
                 switch.toggle()
                 response = 'line 1 off'
-            
+            elif servLog == 6:
+                f = open('log.log')
+                response = f.read()
+            elif reset == 6:
+                resetSwitch()
             #elif line2On == 6:
             #    line2.value(1)
             #    response = 'line 2 on'
@@ -112,6 +126,9 @@ def run():
             print('EXCEPTION!!!')
             error = str(e)
             print(e)
+            f = open('log.log', 'w')
+            f.write(e)
+            f.close()
             
             
     conn.close()

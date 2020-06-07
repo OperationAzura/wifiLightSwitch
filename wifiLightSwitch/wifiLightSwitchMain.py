@@ -1,11 +1,58 @@
 from machine import Pin
 import socket
 
-line1 = Pin(13, Pin.OUT)
-line2 = Pin(12, Pin.OUT)
+import _thread
+import time
+import utime
+
+class Switch:    
+    def pysicalSwitchToggle(self, pin):
+        if abs(time.ticks_ms() - self.pysicalSwitchTimer) > 500:
+            self.toggle()
+            self.pysicalSwitchTimer = utime.ticks_ms()
+        
+    def __init__(self, name, relayPinNumber, switchPinNumber):
+        self.name = name
+        self.relayPin = Pin(relayPinNumber, Pin.OUT)
+        self.switchPin = Pin(switchPinNumber, Pin.IN)
+        self.pysicalSwitchState = self.switchPin.value()
+        self.switchPin.irq(trigger=Pin.IRQ_HIGH_LEVEL | Pin.IRQ_LOW_LEVEL, handler=self.pysicalSwitchToggle)
+        self.pysicalSwitchTimer = utime.ticks_ms()
+        
+        print('Switch created!')
+        print('Name: ', name)
+        print('ticks_ms: ', self.pysicalSwitchTimer)
+
+    def toggle(self):
+        if self.relayPin.value() == 1:
+            self.relayPin.value(0)
+            print('Toggle off', self.name)
+        else:
+            self.relayPin.value(1)
+            print('Toggle on', self.name)
+    
+def watchPysicalSwitch(s):
+    while True:
+        print(s)
+        print('current state: ', s.pysicalSwitchState)
+        state = s.switchPin.value()
+        print('new state: ', state)
+        if state != s.pysicalSwitchState:
+            s.pysicalSwitchState = state
+            print('pysical state set to: ', state)
+            s.toggle()
+        time.sleep(0.5)
+                
+def watchPysicalSwitches(switches):
+    while True:
+        for s in switches:
+            pass
+            
+                
+        time.sleep(0.5)
 
 def web_page():
-  htmlFile = open("index.html", "r")
+  htmlFile = open("wifiLightSwitch/index.html", "r")
   html = htmlFile.read()
   htmlFile.close()
   #html = """<html><head> <title>ESP Web Server</title> <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -17,45 +64,54 @@ def web_page():
   #<p><a href="/?led=off"><button class="button button2">OFF</button></a></p></body></html>"""
   return html
 
-def run():  
+def run():
+    switches = []
+    switch = Switch('Storage Room', 12, 13)
+    switches.append(switch)
+    #_thread.start_new_thread(watchPysicalSwitch, ( switches))
+    
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind(('', 8080))
     s.listen(5)
 
     while True:
+        #print(switchSignalIn.value())
         conn, addr = s.accept()
         try:
             #response = ''
             request = conn.recv(1024)
             request = str(request)
-            #print('Content = %s' % request)
+            
             line1On = request.find('/?line1=on')
             line1Off = request.find('/?line1=off')
-            line2On = request.find('/?line2=on')
-            line2Off = request.find('/?line2=off')
+            #line2On = request.find('/?line2=on')
+            #line2Off = request.find('/?line2=off')
             if line1On == 6:
-                line1.value(1)
+                switch.toggle()
                 response = 'line 1 on'
             elif line1Off == 6:
-                line1.value(0)
+                switch.toggle()
                 response = 'line 1 off'
-            elif line2On == 6:
-                line2.value(1)
-                response = 'line 2 on'
-            elif line2Off == 6:
-                line2.value(0)
-                response = 'line 2 off'
+            
+            #elif line2On == 6:
+            #    line2.value(1)
+            #    response = 'line 2 on'
+            #elif line2Off == 6:
+            #    line2.value(0)
+            #    response = 'line 2 off'
             else:
                 response = web_page()
-                
+            
             #response = web_page()
             conn.send('HTTP/1.1 200 OK\n')
             conn.send('Content-Type: text/html\n')
-            conn.send('Access-Control-Allow-Origin: 192.*\n')
+            conn.send('Access-Control-Allow-Origin: *')
             conn.send('Connection: close\n\n')
             conn.sendall(response)
         except Exception as e:
             print('EXCEPTION!!!')
-            s = str(e)
+            error = str(e)
+            print(e)
+            
             
     conn.close()

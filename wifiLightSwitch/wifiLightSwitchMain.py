@@ -24,12 +24,12 @@ class Switch:
         self.relayPin = Pin(relayPinNumber, Pin.OUT)
         self.switchPin = Pin(switchPinNumber, Pin.IN)
         #self.pysicalSwitchState = self.switchPin.value()
-        self.switchPin.irq(trigger=Pin.IRQ_RISING, handler=self.pysicalSwitchToggle)
-        s#elf.pysicalSwitchTimer = utime.ticks_ms()
+        self.switchPin.irq(trigger=Pin.IRQ_FALLING, handler=self.pysicalSwitchToggle)
+        #self.pysicalSwitchTimer = utime.ticks_ms()
         
         print('Switch created!')
         print('Name: ', name)
-        print('ticks_ms: ', self.pysicalSwitchTimer)
+        #print('ticks_ms: ', self.pysicalSwitchTimer)
 
     def toggle(self):
         if self.relayPin.value() == 1:
@@ -73,6 +73,7 @@ def web_page():
   return html
 
 def run():
+    startResetTimer()
     switches = []
     switch = Switch('Storage Room', 12, 13)
     switches.append(switch)

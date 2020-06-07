@@ -19,7 +19,7 @@
     <p><button id="line1OffButton" data="line1Off" class="button button2">LINE 1 OFF</button></p>
     <p><button id="line2OnButton" data="line2On" class="button">LINE2 ON</button></p>
     <p><button id="line2OffButton" data="line2Off" class="button button2">LINE 2 OFF</button></p>
-    <p><button id="resetSwitch" data="resetSwitch" class="button button2">ResetSwitch</button></p>
+    <p><button id="resetSwitch" data="resetSwitch" class="button button2">ResetSwitFch</button></p>
     <p><button id="loadLog" data="loadLog" class="button button2">LoadLog</button></p>
 </body>
 <script type="text/javascript">
@@ -47,7 +47,7 @@ function flipSwitch(lightSwitch) {
         }
     };
     xmlhttp.open("GET", "http://192.168.1.30/"+lightSwitch+"", true);
-    xmlhttp.setRequestHeader('Access-Control-Allow-Headers', 'http://derekspace.ddns.net');
+    xmlhttp.setRequestHeader('Access-Control-Allow-Headers', '*');
     xmlhttp.send();
 }
 

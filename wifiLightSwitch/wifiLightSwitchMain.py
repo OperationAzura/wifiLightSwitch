@@ -13,19 +13,33 @@ def startResetTimer():
     timer = machine.Timer(0)  
     timer.init(period=60000, mode=machine.Timer.PERIODIC, callback=resetSwitch)
  
+def logToFile(s):
+    f.open('log.log', 'w')
+    st = str(time.time())
+    f.write((st + s))
+    f.close()
+
+ def logException(e):
+    import sys
+    logToFile(sys.print_exception(e))
+    sys.print_exception(e)
+    
+
 class Switch:    
     def pysicalSwitchToggle(self, pin):
-        #if abs(time.ticks_ms() - self.pysicalSwitchTimer) > 500:
-        self.toggle()
-            #self.pysicalSwitchTimer = utime.ticks_ms()
+        if abs(time.ticks_ms() - self.pysicalSwitchTimer) > 500:
+            self.toggle()
+            self.pysicalSwitchTimer = utime.ticks_ms()
+        else:
+            logToFile('IRQ triggered too soon!!! ', time.ticks_ms() - self.pysicalSwitchTimer))
         
     def __init__(self, name, relayPinNumber, switchPinNumber):
         self.name = name
         self.relayPin = Pin(relayPinNumber, Pin.OUT)
-        self.switchPin = Pin(switchPinNumber, Pin.IN)
+        self.switchPin = Pin(switchPinNumber, Pin.IN, Pin.PULL_DOWN)
         #self.pysicalSwitchState = self.switchPin.value()
         self.switchPin.irq(trigger=Pin.IRQ_FALLING, handler=self.pysicalSwitchToggle)
-        #self.pysicalSwitchTimer = utime.ticks_ms()
+        self.pysicalSwitchTimer = utime.ticks_ms()
         
         print('Switch created!')
         print('Name: ', name)
@@ -34,10 +48,10 @@ class Switch:
     def toggle(self):
         if self.relayPin.value() == 1:
             self.relayPin.value(0)
-            print('Toggle off', self.name)
+            logToFile('Toggle off', self.name)
         else:
             self.relayPin.value(1)
-            print('Toggle on', self.name)
+            logToFile('Toggle on', self.name)
     
 def watchPysicalSwitch(s):
     while True:
@@ -73,6 +87,7 @@ def web_page():
   return html
 
 def run():
+    logToFile('RUN starting')
     startResetTimer()
     switches = []
     switch = Switch('Storage Room', 12, 13)
@@ -100,13 +115,20 @@ def run():
             if line1On == 6:
                 switch.toggle()
                 response = 'line 1 on'
+                logToFile('line 1 on recieved')
             elif line1Off == 6:
                 switch.toggle()
                 response = 'line 1 off'
+                logToFile('line 1 off recieved')
             elif servLog == 6:
+                logToFile('log request recieved')
                 f = open('log.log')
                 response = f.read()
+                logToFile(response)
+                f.close()
             elif reset == 6:
+                logToFile('reset request recieved')
+                response = 'resetting'
                 resetSwitch()
             #elif line2On == 6:
             #    line2.value(1)
@@ -127,9 +149,7 @@ def run():
             print('EXCEPTION!!!')
             error = str(e)
             print(e)
-            f = open('log.log', 'w')
-            f.write(e)
-            f.close()
+            logException(e)
             
             
     conn.close()

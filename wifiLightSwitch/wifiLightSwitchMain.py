@@ -14,12 +14,12 @@ def startResetTimer():
     timer.init(period=60000, mode=machine.Timer.PERIODIC, callback=resetSwitch)
  
 def logToFile(s):
-    f.open('log.log', 'w')
+    f = open('log.log', 'w')
     st = str(time.time())
     f.write((st + s))
     f.close()
 
- def logException(e):
+def logException(e):
     import sys
     logToFile(sys.print_exception(e))
     sys.print_exception(e)
@@ -31,7 +31,7 @@ class Switch:
             self.toggle()
             self.pysicalSwitchTimer = utime.ticks_ms()
         else:
-            logToFile('IRQ triggered too soon!!! ', time.ticks_ms() - self.pysicalSwitchTimer))
+            logToFile('IRQ triggered too soon!!! ')
         
     def __init__(self, name, relayPinNumber, switchPinNumber):
         self.name = name
@@ -48,10 +48,10 @@ class Switch:
     def toggle(self):
         if self.relayPin.value() == 1:
             self.relayPin.value(0)
-            logToFile('Toggle off', self.name)
+            logToFile('Toggle off' + self.name)
         else:
             self.relayPin.value(1)
-            logToFile('Toggle on', self.name)
+            logToFile('Toggle on' + self.name)
     
 def watchPysicalSwitch(s):
     while True:
@@ -124,7 +124,6 @@ def run():
                 logToFile('log request recieved')
                 f = open('log.log')
                 response = f.read()
-                logToFile(response)
                 f.close()
             elif reset == 6:
                 logToFile('reset request recieved')
@@ -147,8 +146,6 @@ def run():
             conn.sendall(response)
         except Exception as e:
             print('EXCEPTION!!!')
-            error = str(e)
-            print(e)
             logException(e)
             
             

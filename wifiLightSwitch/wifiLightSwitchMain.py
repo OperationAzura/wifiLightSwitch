@@ -5,6 +5,7 @@ import _thread
 import time
 import utime
 import machine
+import wifiLightSwitch.uftpd
 
 def resetSwitch():
     machine.reset()

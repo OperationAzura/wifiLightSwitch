@@ -36,6 +36,10 @@ function flipSwitch(lightSwitch) {
     xmlhttp.onreadystatechange = function() {
         if (xmlhttp.readyState == XMLHttpRequest.DONE) {   // XMLHttpRequest.DONE == 4
            if (xmlhttp.status == 200) {
+               console.log('response text:')
+               console.log(xmlhttp.responseText)
+               console.log('response')
+               console.log(xmlhttp.response)
                document.getElementById("state").innerHTML = xmlhttp.responseText;
            }
            else if (xmlhttp.status == 400) {

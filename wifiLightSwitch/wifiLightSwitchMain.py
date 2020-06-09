@@ -8,6 +8,7 @@ import machine
 import wifiLightSwitch.uftpd
 
 def resetSwitch():
+    logToFile('restarting')
     machine.reset()
 
 def startResetTimer():
@@ -49,10 +50,10 @@ class Switch:
     def toggle(self):
         if self.relayPin.value() == 1:
             self.relayPin.value(0)
-            logToFile('Toggle off' + self.name)
+            logToFile(('Toggle off' + self.name))
         else:
             self.relayPin.value(1)
-            logToFile('Toggle on' + self.name)
+            logToFile(('Toggle on' + self.name))
     
 def watchPysicalSwitch(s):
     while True:

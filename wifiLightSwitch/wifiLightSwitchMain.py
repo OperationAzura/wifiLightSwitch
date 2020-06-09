@@ -17,8 +17,8 @@ def startResetTimer():
  
 def logToFile(s):
     f = open('log.log', 'w')
-    st = str(time.time())
-    f.write((st + s))
+    st = s + str(time.time())
+    f.write(st )
     f.close()
 
 def logException(e):
@@ -50,10 +50,10 @@ class Switch:
     def toggle(self):
         if self.relayPin.value() == 1:
             self.relayPin.value(0)
-            logToFile(('Toggle off' + self.name))
+            logToFile('Toggle off')
         else:
             self.relayPin.value(1)
-            logToFile(('Toggle on' + self.name))
+            logToFile('Toggle on')
     
 def watchPysicalSwitch(s):
     while True:

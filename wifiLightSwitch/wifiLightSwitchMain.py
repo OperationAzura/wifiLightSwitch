@@ -5,9 +5,9 @@ import _thread
 import time
 import utime
 import machine
-import wifiLightSwitch.uftpd
+#import wifiLightSwitch.uftpd
 
-def resetSwitch():
+def resetSwitch(a):
     logToFile('restarting')
     machine.reset()
 
@@ -16,9 +16,13 @@ def startResetTimer():
     timer.init(period=60000, mode=machine.Timer.PERIODIC, callback=resetSwitch)
  
 def logToFile(s):
+    f = open('log.log', 'r')
+    old = f.read()
+    f.close()
     f = open('log.log', 'w')
-    st = s + str(time.time())
-    f.write(st )
+    f.write(old)
+    f.write("\n")
+    f.write(s)
     f.close()
 
 def logException(e):
@@ -29,7 +33,10 @@ def logException(e):
 
 class Switch:    
     def pysicalSwitchToggle(self, pin):
+        #logToFile('ADC VALUE!!!')
+        #logToFile(self.adc.read())
         if abs(time.ticks_ms() - self.pysicalSwitchTimer) > 500:
+            logToFile('triggered!')
             self.toggle()
             self.pysicalSwitchTimer = utime.ticks_ms()
         else:
@@ -42,7 +49,7 @@ class Switch:
         #self.pysicalSwitchState = self.switchPin.value()
         self.switchPin.irq(trigger=Pin.IRQ_FALLING, handler=self.pysicalSwitchToggle)
         self.pysicalSwitchTimer = utime.ticks_ms()
-        
+        #self.adc = machine.ADC(self.switchPin)
         print('Switch created!')
         print('Name: ', name)
         #print('ticks_ms: ', self.pysicalSwitchTimer)
@@ -50,10 +57,8 @@ class Switch:
     def toggle(self):
         if self.relayPin.value() == 1:
             self.relayPin.value(0)
-            logToFile('Toggle off')
         else:
             self.relayPin.value(1)
-            logToFile('Toggle on')
     
 def watchPysicalSwitch(s):
     while True:
@@ -88,11 +93,19 @@ def web_page():
   #<p><a href="/?led=off"><button class="button button2">OFF</button></a></p></body></html>"""
   return html
 
+def sendHTTP(conn, response):
+    conn.send('HTTP/1.1 200 OK\n')
+    conn.send('Content-Type: text/html\n')
+    conn.send('Access-Control-Allow-Origin: *')
+    conn.send('Connection: close\n\n')
+    conn.sendall(response)
+    conn.close()
+
 def run():
     logToFile('RUN starting')
     startResetTimer()
     switches = []
-    switch = Switch('Storage Room', 12, 13)
+    switch = Switch('Storage Room', 13, 36)
     switches.append(switch)
     #_thread.start_new_thread(watchPysicalSwitch, ( switches))
     
@@ -101,10 +114,9 @@ def run():
     s.listen(5)
 
     while True:
-        #print(switchSignalIn.value())
         conn, addr = s.accept()
         try:
-            #response = ''
+            response = ''
             request = conn.recv(1024)
             request = str(request)
             
@@ -118,37 +130,30 @@ def run():
                 switch.toggle()
                 response = 'line 1 on'
                 logToFile('line 1 on recieved')
+                sendHTTP(conn, response)
             elif line1Off == 6:
                 switch.toggle()
                 response = 'line 1 off'
                 logToFile('line 1 off recieved')
+                sendHTTP(conn, response)
             elif servLog == 6:
                 logToFile('log request recieved')
                 f = open('log.log')
                 response = f.read()
                 f.close()
+                sendHTTP(conn, response)
             elif reset == 6:
                 logToFile('reset request recieved')
                 response = 'resetting'
+                sendHTTP(conn, response)
                 resetSwitch()
-            #elif line2On == 6:
-            #    line2.value(1)
-            #    response = 'line 2 on'
-            #elif line2Off == 6:
-            #    line2.value(0)
-            #    response = 'line 2 off'
             else:
                 response = web_page()
+                sendHTTP(conn, response)
             
-            #response = web_page()
-            conn.send('HTTP/1.1 200 OK\n')
-            conn.send('Content-Type: text/html\n')
-            conn.send('Access-Control-Allow-Origin: *')
-            conn.send('Connection: close\n\n')
-            conn.sendall(response)
         except Exception as e:
-            print('EXCEPTION!!!')
             logException(e)
+            conn.close()
             
-            
-    conn.close()
+               
+        

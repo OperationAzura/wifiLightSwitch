@@ -21,7 +21,7 @@ def logToFile(s):
     f.close()
     f = open('log.log', 'w')
     f.write(old)
-    f.write("\n")
+    f.write('\n')
     f.write(s)
     f.close()
 
@@ -33,10 +33,7 @@ def logException(e):
 
 class Switch:    
     def pysicalSwitchToggle(self, pin):
-        #logToFile('ADC VALUE!!!')
-        #logToFile(self.adc.read())
         if abs(time.ticks_ms() - self.pysicalSwitchTimer) > 500:
-            logToFile('triggered!')
             self.toggle()
             self.pysicalSwitchTimer = utime.ticks_ms()
         else:
@@ -46,8 +43,8 @@ class Switch:
         self.name = name
         self.relayPin = Pin(relayPinNumber, Pin.OUT)
         self.switchPin = Pin(switchPinNumber, Pin.IN, Pin.PULL_DOWN)
-        #self.pysicalSwitchState = self.switchPin.value()
-        self.switchPin.irq(trigger=Pin.IRQ_FALLING, handler=self.pysicalSwitchToggle)
+        self.pysicalSwitchState = self.switchPin.value()
+        #self.switchPin.irq(trigger=Pin.IRQ_FALLING, handler=self.pysicalSwitchToggle)
         self.pysicalSwitchTimer = utime.ticks_ms()
         #self.adc = machine.ADC(self.switchPin)
         print('Switch created!')
@@ -59,23 +56,41 @@ class Switch:
             self.relayPin.value(0)
         else:
             self.relayPin.value(1)
+     
+    #analogGraph reads the ADC value, calculates it to a 3.3v scale and makes a crude bar graph
+    def analogGraph(self):
+        v = int((self.adc.read() / 4095) * 50)
+        x = 0
+        bar = str((v / 50) * 3.3) + ' '
+        while x <= v:
+            x = x + 1
+            bar = bar + 'X'
+        return bar
+        
+            
     
 def watchPysicalSwitch(s):
     while True:
-        print(s)
-        print('current state: ', s.pysicalSwitchState)
-        state = s.switchPin.value()
-        print('new state: ', state)
+        
+        state = s.switchPin.value() 41
         if state != s.pysicalSwitchState:
             s.pysicalSwitchState = state
-            print('pysical state set to: ', state)
+            logToFile('pysical state set to: ', state)
             s.toggle()
         time.sleep(0.5)
                 
 def watchPysicalSwitches(switches):
+    logToFile('watching sweitches:')
+    for s in switches:
+        logToFile(s.name())
     while True:
         for s in switches:
-            pass
+            state = s.switchPin.value()
+            if state != s.pysicalSwitchState:
+                s.pysicalSwitchState = state
+                logToFile('pysical state set to: ', state)
+                s.toggle()
+            time.sleep(0.5)
             
                 
         time.sleep(0.5)
@@ -102,12 +117,13 @@ def sendHTTP(conn, response):
     conn.close()
 
 def run():
+    
     logToFile('RUN starting')
     startResetTimer()
     switches = []
     switch = Switch('Storage Room', 13, 36)
     switches.append(switch)
-    #_thread.start_new_thread(watchPysicalSwitch, ( switches))
+    _thread.start_new_thread(watchPysicalSwitch, ( switches))
     
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind(('', 8080))

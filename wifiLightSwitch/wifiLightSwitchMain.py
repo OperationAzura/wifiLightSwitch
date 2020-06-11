@@ -76,7 +76,7 @@ class Switch:
     
 def watchPysicalSwitch(s):
     while True:
-        state = s.switchPin.value() 41
+        state = s.switchPin.value() 
         if state != s.pysicalSwitchState:
             s.pysicalSwitchState = state
             logToFile('pysical state set to: ' + str(state))

@@ -16,9 +16,14 @@ def startResetTimer():
     timer.init(period=60000, mode=machine.Timer.PERIODIC, callback=resetSwitch)
  
 def logToFile(s):
-    f = open('log.log', 'r')
-    old = f.read()
-    f.close()
+    old = ''
+    try:
+        f = open('log.log', 'r')
+        old = f.read()
+        f.close()
+    except Exception as e:
+        print('EXCEPTION: log most likely not created yet, attempting to create')
+        print(e)
     f = open('log.log', 'w')
     f.write(old)
     f.write('\n')
@@ -71,11 +76,10 @@ class Switch:
     
 def watchPysicalSwitch(s):
     while True:
-        
         state = s.switchPin.value() 41
         if state != s.pysicalSwitchState:
             s.pysicalSwitchState = state
-            logToFile('pysical state set to: ', state)
+            logToFile('pysical state set to: ' + str(state))
             s.toggle()
         time.sleep(0.5)
                 

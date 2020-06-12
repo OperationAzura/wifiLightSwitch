@@ -15,18 +15,12 @@
 <body>
     <h1>Derek's Storage Room Light Switch Server</h1>
     <p>state: <strong ><div id="state">State?</div></strong></p>
-    <p><button id="line1OnButton" data="line1On" class="button">LINE1 ON</button></p>
-    <p><button id="line1OffButton" data="line1Off" class="button button2">LINE 1 OFF</button></p>
-    <p><button id="line2OnButton" data="line2On" class="button">LINE2 ON</button></p>
-    <p><button id="line2OffButton" data="line2Off" class="button button2">LINE 2 OFF</button></p>
+    <p><button id="line1OnButton" data="line1On" class="button">Toggle Switch</button></p>
     <p><button id="resetSwitch" data="resetSwitch" class="button button2">ResetSwitFch</button></p>
     <p><button id="loadLog" data="loadLog" class="button button2">LoadLog</button></p>
 </body>
 <script type="text/javascript">
     document.getElementById("line1OnButton").addEventListener("click", line1OnButton);
-    document.getElementById("line1OffButton").addEventListener("click", line1OffButton);
-    document.getElementById("line2OnButton").addEventListener("click", line2OnButton);
-    document.getElementById("line2OffButton").addEventListener("click", line2OffButton);
     document.getElementById("resetSwitch").addEventListener("click", resetSwitch);
     document.getElementById("loadLog").addEventListener("click", loadLog);
                    
@@ -62,18 +56,8 @@ function loadLog(){
 function resetSwitch(){
     flipSwitch('resetSwitch');
 }
-
 function line1OnButton(){
     flipSwitch("?line1=on");    
-}
-function line1OffButton(){
-    flipSwitch("?line1=off");
-}
-function line2OnButton(){
-    flipSwitch("?line2=on");    
-}
-function line2OffButton(){
-    flipSwitch("?line2=off");
 }
 </script>                 
 </html>

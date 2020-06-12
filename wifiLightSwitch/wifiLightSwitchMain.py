@@ -59,8 +59,10 @@ class Switch:
     def toggle(self):
         if self.relayPin.value() == 1:
             self.relayPin.value(0)
+            return self.name + "ON"
         else:
             self.relayPin.value(1)
+            return self.name + "OFF"
      
     #analogGraph reads the ADC value, calculates it to a 3.3v scale and makes a crude bar graph
     def analogGraph(self):
@@ -100,17 +102,10 @@ def watchPysicalSwitches(switches):
         time.sleep(0.5)
 
 def web_page():
-  htmlFile = open("wifiLightSwitch/index.html", "r")
-  html = htmlFile.read()
-  htmlFile.close()
-  #html = """<html><head> <title>ESP Web Server</title> <meta name="viewport" content="width=device-width, initial-scale=1">
-  #<link rel="icon" href="data:,"> <style>html{font-family: Helvetica; display:inline-block; margin: 0px auto; text-align: center;}
-  #h1{color: #0F3376; padding: 2vh;}p{font-size: 1.5rem;}.button{display: inline-block; background-color: #e7bd3b; border: none; 
-  #border-radius: 4px; color: white; padding: 16px 40px; text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}
-  #.button2{background-color: #4286f4;}</style></head><body> <h1>ESP Web Server</h1> 
-  #<p>GPIO state: <strong>""" + gpio_state + """</strong></p><p><a href="/?led=on"><button class="button">ON</button></a></p>
-  #<p><a href="/?led=off"><button class="button button2">OFF</button></a></p></body></html>"""
-  return html
+    htmlFile = open("wifiLightSwitch/index.html", "r")
+    html = htmlFile.read()
+    htmlFile.close()
+    return html
 
 def sendHTTP(conn, response):
     conn.send('HTTP/1.1 200 OK\n')
@@ -141,20 +136,11 @@ def run():
             request = str(request)
             
             line1On = request.find('/?line1=on')
-            line1Off = request.find('/?line1=off')
             servLog = request.find('/log')
             reset = request.find('/resetSwitch')
-            #line2On = request.find('/?line2=on')
-            #line2Off = request.find('/?line2=off')
             if line1On == 6:
-                switch.toggle()
-                response = 'line 1 on'
-                logToFile('line 1 on recieved')
-                sendHTTP(conn, response)
-            elif line1Off == 6:
-                switch.toggle()
-                response = 'line 1 off'
-                logToFile('line 1 off recieved')
+                response = switch.toggle()
+                logToFile('line 1 toggle recieved')
                 sendHTTP(conn, response)
             elif servLog == 6:
                 logToFile('log request recieved')

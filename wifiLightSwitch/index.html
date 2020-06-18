@@ -19,6 +19,7 @@
     <p><button id="line1OnButton" data="line1On" class="button">Toggle Switch</button></p>
     <p><button id="resetSwitch" data="resetSwitch" class="button button2">ResetSwitFch</button></p>
     <p><button id="loadLog" data="loadLog" class="button button2">LoadLog</button></p>
+    <p><button id="clearLog" data="clearLog" class="button button2">ClearLog</button></p>
 </body>
 <script type="text/javascript">
     getState();
@@ -26,6 +27,7 @@
     document.getElementById("line1OnButton").addEventListener("click", line1OnButton);
     document.getElementById("resetSwitch").addEventListener("click", resetSwitch);
     document.getElementById("loadLog").addEventListener("click", loadLog);
+    document.getElementById("clearLog").addEventListener("click", clearLog);
     document.getElementById("setTimer").addEventListener("keyup", setTimer);
     
 function flipSwitch(lightSwitch) {
@@ -54,7 +56,7 @@ function flipSwitch(lightSwitch) {
 }
 
 function getState(){
-    flipSwitch("getState")
+    flipSwitch("getState");
 }
 
 function setTimer(){
@@ -63,6 +65,10 @@ function setTimer(){
 }
 function loadLog(){
     flipSwitch('log');
+}
+
+function clearLog(){
+    flipSwitch('clearLog');
 }
 
 function resetSwitch(){

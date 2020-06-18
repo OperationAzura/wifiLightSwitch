@@ -31,6 +31,27 @@ def logToFile(s):
     f.write(s)
     f.close()
 
+def getLog():
+    l = ''
+    try:
+        f = open('log.log')
+        l = f.read()
+        f.close()
+    except Exception as e:
+        print('Exception getting log: ', e)
+        f.close()
+        l = 'no log exists'
+    if l == '':
+        l = 'no log exists'
+    return l
+        
+        
+
+def clearLog():
+    f = open('log.log', 'w')
+    f.write('')
+    f.close()
+        
 def logException(e):
     import sys
     logToFile(str(sys.print_exception(e)))
@@ -179,15 +200,13 @@ def run():
             getStateHandler = request.find('/getState')
             getTimerHandler = request.find('/getTimer')
             setTimerHandler = request.find('/setTimer')
+            clearLogHandler = request.find('/clearLog')
             if line1On == 6:
                 response = switch.toggle()
                 logToFile('line 1 toggle recieved')
                 sendHTTP(conn, response)
             elif servLog == 6:
-                logToFile('log request recieved')
-                f = open('log.log')
-                response = f.read()
-                f.close()
+                response = getLog()
                 sendHTTP(conn, response)
             elif getStateHandler == 6:
                 response = switch.getState()
@@ -207,6 +226,9 @@ def run():
                 response = switch.setTimer(int(request[setTimerHandler+9:request.find(' HTTP')]))
                 logToFile(response)
                 sendHTTP(conn, response)
+            elif clearLogHandler == 6:
+                clearLog()
+                sendHTTP(conn, 'log cleared')
             else:
                 response = web_page()
                 sendHTTP(conn, response)

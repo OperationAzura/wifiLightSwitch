@@ -84,17 +84,17 @@ class Switch:
         if self.relayPin.value() == 1:
             self.relayPin.value(0)
             self.stopTimer()
-            return self.name + " OFF"
+            return self.name + " OFF: " + str(self.relayPin.value())
         else:
             self.relayPin.value(1)
             self.stopTimer()
             self.startTimer()
-            return self.name + " ON"
+            return self.name + " ON: " + str(self.relayPin.value())
     #getState gets the on / off state of the light
     def getState(self):
-        state = 'ON'
+        state = 'ON: ' + str(self.relayPin.value())
         if self.relayPin.value() == 0:
-            state = 'OFF'
+            state = 'OFF: ' + str(self.relayPin.value())
         return state
 
     #analogGraph reads the ADC value, calculates it to a 3.3v scale and makes a crude bar graph

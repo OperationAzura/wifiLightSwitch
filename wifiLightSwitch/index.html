@@ -50,7 +50,7 @@ function flipSwitch(lightSwitch) {
            }
         }
     };
-    xmlhttp.open("GET", "http://192.168.1.31:8080/"+lightSwitch+"", true);
+    xmlhttp.open("GET", "http://192.168.1.30:8080/"+lightSwitch+"", true);
     xmlhttp.setRequestHeader('Access-Control-Allow-Headers', '*');
     xmlhttp.send();
 }

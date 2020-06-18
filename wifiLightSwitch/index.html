@@ -15,15 +15,19 @@
 <body>
     <h1>Derek's Storage Room Light Switch Server</h1>
     <p>state: <strong ><div id="state">State?</div></strong></p>
+    <p><input id="setTimer" placeholder="15" value="" ></input></p>
     <p><button id="line1OnButton" data="line1On" class="button">Toggle Switch</button></p>
     <p><button id="resetSwitch" data="resetSwitch" class="button button2">ResetSwitFch</button></p>
     <p><button id="loadLog" data="loadLog" class="button button2">LoadLog</button></p>
 </body>
 <script type="text/javascript">
+    getState();
+    var stateTimer = setInterval(getState, 5000);
     document.getElementById("line1OnButton").addEventListener("click", line1OnButton);
     document.getElementById("resetSwitch").addEventListener("click", resetSwitch);
     document.getElementById("loadLog").addEventListener("click", loadLog);
-                   
+    document.getElementById("setTimer").addEventListener("keyup", setTimer);
+    
 function flipSwitch(lightSwitch) {
     var xmlhttp = new XMLHttpRequest();
 
@@ -44,11 +48,19 @@ function flipSwitch(lightSwitch) {
            }
         }
     };
-    xmlhttp.open("GET", "http://192.168.1.30:8080/"+lightSwitch+"", true);
+    xmlhttp.open("GET", "http://192.168.1.31:8080/"+lightSwitch+"", true);
     xmlhttp.setRequestHeader('Access-Control-Allow-Headers', '*');
     xmlhttp.send();
 }
 
+function getState(){
+    flipSwitch("getState")
+}
+
+function setTimer(){
+    console.log("setTimer" + document.getElementById("setTimer").value);
+    flipSwitch("setTimer" + document.getElementById("setTimer").value);
+}
 function loadLog(){
     flipSwitch('log');
 }

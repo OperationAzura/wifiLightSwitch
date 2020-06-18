@@ -12,18 +12,6 @@ class OTAUpdater:
         self.main_dir = main_dir
         self.module = module.rstrip('/')
 
-    @staticmethod #TODO no need if I'm already connected?
-    def using_network(ssid, password):
-        import network
-        sta_if = network.WLAN(network.STA_IF)
-        if not sta_if.isconnected():
-            print('connecting to network...')
-            sta_if.active(True)
-            sta_if.connect(ssid, password)
-            while not sta_if.isconnected():
-                pass
-        print('network config:', sta_if.ifconfig())
-
     def check_for_update_to_install_during_next_reboot(self):
         current_version = self.get_version(self.modulepath(self.main_dir))
         latest_version = self.get_latest_version()
@@ -48,8 +36,6 @@ class OTAUpdater:
             print('No new updates found...')
 
     def _download_and_install_update(self, latest_version, ssid, password):
-        OTAUpdater.using_network(ssid, password)
-
         self.download_all_files(self.github_repo + '/contents/' + self.main_dir, latest_version)
         self.rmtree(self.modulepath(self.main_dir))
         os.rename(self.modulepath('next/.version_on_reboot'), self.modulepath('next/.version'))
@@ -109,9 +95,12 @@ class OTAUpdater:
 
     def get_latest_version(self):
         latest_release = self.http_client.get(self.github_repo + '/releases/latest')
-        version = latest_release.json()['tag_name']
+        version = '0'
+        try:
+            version = latest_release.json()['tag_name']
+        except Exception as e:
+            print('Exception in ota.py get_latest_version(): ', e)
         latest_release.close()
-        print('version: ',version)
         return version
 
     def download_all_files(self, root_url, version):

@@ -12,8 +12,9 @@ def resetSwitch(a):
     machine.reset()
 
 def startResetTimer():
-    timer = machine.Timer(0)  
-    timer.init(period=60000, mode=machine.Timer.PERIODIC, callback=resetSwitch)
+    timer = machine.Timer(0)
+    #86400 seconds in a day
+    timer.init(period=86400000, mode=machine.Timer.PERIODIC, callback=resetSwitch)
  
 def logToFile(s):
     old = ''
@@ -32,7 +33,7 @@ def logToFile(s):
 
 def logException(e):
     import sys
-    logToFile(sys.print_exception(e))
+    logToFile(str(sys.print_exception(e)))
     sys.print_exception(e)
     
 
@@ -44,13 +45,15 @@ class Switch:
         else:
             logToFile('IRQ triggered too soon!!! ')
         
-    def __init__(self, name, relayPinNumber, switchPinNumber):
+    def __init__(self, name, relayPinNumber, switchPinNumber, defaultShutOffTimer=15):
         self.name = name
         self.relayPin = Pin(relayPinNumber, Pin.OUT)
         self.switchPin = Pin(switchPinNumber, Pin.IN, Pin.PULL_DOWN)
         self.pysicalSwitchState = self.switchPin.value()
         #self.switchPin.irq(trigger=Pin.IRQ_FALLING, handler=self.pysicalSwitchToggle)
         self.pysicalSwitchTimer = utime.ticks_ms()
+        self.shutOffTimer = machine.Timer(1)  
+        self.shutOffTime = defaultShutOffTimer * 60000 #60000 = minute
         #self.adc = machine.ADC(self.switchPin)
         print('Switch created!')
         print('Name: ', name)
@@ -59,11 +62,20 @@ class Switch:
     def toggle(self):
         if self.relayPin.value() == 1:
             self.relayPin.value(0)
-            return self.name + "ON"
+            self.stopTimer()
+            return self.name + " OFF"
         else:
             self.relayPin.value(1)
-            return self.name + "OFF"
-     
+            self.stopTimer()
+            self.startTimer()
+            return self.name + " ON"
+    #getState gets the on / off state of the light
+    def getState(self):
+        state = 'ON'
+        if self.relayPin.value() == 0:
+            state = 'OFF'
+        return state
+
     #analogGraph reads the ADC value, calculates it to a 3.3v scale and makes a crude bar graph
     def analogGraph(self):
         v = int((self.adc.read() / 4095) * 50)
@@ -73,9 +85,36 @@ class Switch:
             x = x + 1
             bar = bar + 'X'
         return bar
-        
-            
+    #getTimer get the current state of the shut off timer
+    def getTimer(self):
+        return self.shutOffTimer
+
+    #startTimer starts the shutOffTimer
+    def startTimer(self):
+        self.shutOffTimer.init(period=self.shutOffTime, mode=machine.Timer.ONE_SHOT, callback=self.turnLightOff)
     
+    #stopTimer shuts the shut off timer off
+    def stopTimer(self):
+        self.shutOffTimer.deinit()
+
+
+    #setTimer sets the shut off timer
+    def setTimer(self, timer):
+        #60000 = minute
+        self.shutOffTime = (60000 * timer)
+        self.stopTimer()
+        self.startTimer()
+        return str(self.shutOffTime)
+    
+    #turnLightOff is used with a timer to make sure the light shuts off
+    def turnLightOff(self, a):
+        print('shut off timer fired')
+        if self.relayPin.value() == 1:
+            print('shutting light off')
+            self.toggle()
+        else:
+            print('the light was off already')
+             
 def watchPysicalSwitch(s):
     while True:
         state = s.switchPin.value() 
@@ -83,7 +122,7 @@ def watchPysicalSwitch(s):
             s.pysicalSwitchState = state
             logToFile('pysical state set to: ' + str(state))
             s.toggle()
-        time.sleep(0.5)
+        time.sleep(0.4)
                 
 def watchPysicalSwitches(switches):
     logToFile('watching sweitches:')
@@ -132,12 +171,14 @@ def run():
         conn, addr = s.accept()
         try:
             response = ''
-            request = conn.recv(1024)
-            request = str(request)
+            request = str(conn.recv(1024))
             
             line1On = request.find('/?line1=on')
             servLog = request.find('/log')
             reset = request.find('/resetSwitch')
+            getStateHandler = request.find('/getState')
+            getTimerHandler = request.find('/getTimer')
+            setTimerHandler = request.find('/setTimer')
             if line1On == 6:
                 response = switch.toggle()
                 logToFile('line 1 toggle recieved')
@@ -148,11 +189,24 @@ def run():
                 response = f.read()
                 f.close()
                 sendHTTP(conn, response)
+            elif getStateHandler == 6:
+                response = switch.getState()
+                sendHTTP(conn, response)
             elif reset == 6:
                 logToFile('reset request recieved')
                 response = 'resetting'
                 sendHTTP(conn, response)
-                resetSwitch()
+                resetSwitch(1)
+            elif getTimerHandler == 6:
+                logToFile('getting timer: ')
+                response = switch.getTimer()
+                logToFile(response)
+                sendHTTP(conn, response)
+            elif setTimerHandler == 6:
+                logToFile('setting timer: ')
+                response = switch.setTimer(int(request[setTimerHandler+9:request.find(' HTTP')]))
+                logToFile(response)
+                sendHTTP(conn, response)
             else:
                 response = web_page()
                 sendHTTP(conn, response)

@@ -58,42 +58,32 @@ def logException(e):
     sys.print_exception(e)
     
 
-class Switch:    
-    def pysicalSwitchToggle(self, pin):
-        if abs(time.ticks_ms() - self.pysicalSwitchTimer) > 500:
-            self.toggle()
-            self.pysicalSwitchTimer = utime.ticks_ms()
-        else:
-            logToFile('IRQ triggered too soon!!! ')
-        
+class Switch:
     def __init__(self, name, relayPinNumber, switchPinNumber, defaultShutOffTimer=15):
         self.name = name
         self.relayPin = Pin(relayPinNumber, Pin.OUT)
         self.switchPin = Pin(switchPinNumber, Pin.IN, Pin.PULL_DOWN)
         self.pysicalSwitchState = self.switchPin.value()
-        #self.switchPin.irq(trigger=Pin.IRQ_FALLING, handler=self.pysicalSwitchToggle)
-        self.pysicalSwitchTimer = utime.ticks_ms()
         self.shutOffTimer = machine.Timer(1)  
         self.shutOffTime = defaultShutOffTimer * 60000 #60000 = minute
         #self.adc = machine.ADC(self.switchPin)
         print('Switch created!')
         print('Name: ', name)
-        #print('ticks_ms: ', self.pysicalSwitchTimer)
 
     def toggle(self):
-        if self.relayPin.value() == 1:
-            self.relayPin.value(0)
+        if self.relayPin.value() == 0:
+            self.relayPin.value(1)
             self.stopTimer()
             return self.name + " OFF: " + str(self.relayPin.value())
         else:
-            self.relayPin.value(1)
+            self.relayPin.value(0)
             self.stopTimer()
             self.startTimer()
             return self.name + " ON: " + str(self.relayPin.value())
     #getState gets the on / off state of the light
     def getState(self):
         state = 'ON: ' + str(self.relayPin.value())
-        if self.relayPin.value() == 0:
+        if self.relayPin.value() == 1:
             state = 'OFF: ' + str(self.relayPin.value())
         return state
 
@@ -130,7 +120,7 @@ class Switch:
     #turnLightOff is used with a timer to make sure the light shuts off
     def turnLightOff(self, a):
         print('shut off timer fired')
-        if self.relayPin.value() == 1:
+        if self.relayPin.value() == 0:
             print('shutting light off')
             self.toggle()
         else:

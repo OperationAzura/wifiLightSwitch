@@ -7,6 +7,11 @@ import utime
 import machine
 #import wifiLightSwitch.uftpd
 
+### quick fix for crash
+f = open('log.log', 'w')
+f.write('')
+f.close()
+
 def resetSwitch(a):
     logToFile('restarting')
     machine.reset()
